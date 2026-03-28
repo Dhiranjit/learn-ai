@@ -1,8 +1,8 @@
 """
-GroqClient: raw OpenAI-SDK wrapper pointed at Groq's API.
+GroqClient: BaseLLMClient implementation backed by Groq's API.
 
-This is the foundational LLM interface for the project. All LLM calls go
-through here so the model and provider can be swapped without touching other code.
+Uses the raw openai SDK pointed at Groq's OpenAI-compatible endpoint.
+Swap providers by implementing BaseLLMClient and injecting into TutorAgent.
 """
 
 import os
@@ -10,8 +10,10 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
+from src.llm.base import BaseLLMClient
 
-class GroqClient:
+
+class GroqClient(BaseLLMClient):
     def __init__(self) -> None:
         load_dotenv()
         self._model = os.environ["GROQ_MODEL"]
@@ -20,21 +22,17 @@ class GroqClient:
             base_url="https://api.groq.com/openai/v1",
         )
 
-    def chat(self, messages: list[dict], **kwargs) -> str:
-        """
-        Send a messages list to the LLM and return the reply as a string.
-
-        Args:
-            messages: list of {"role": "system"/"user"/"assistant", "content": str}
-            **kwargs: forwarded to chat.completions.create (e.g. temperature, max_tokens)
-        """
-        params = {
-            "model": self._model,
-            "messages": messages,
-            "temperature": 0.7,
-            "max_comepletion_tokens": 1024,
-
-        }
-        params.update(kwargs)
-        response = self._client.chat.completions.create(**params)
+    def chat(
+        self,
+        messages: list[dict],
+        temperature: float = 0.7,
+        max_completion_tokens: int = 1024,
+    ) -> str:
+        """Send a messages list to the LLM and return the reply as a string."""
+        response = self._client.chat.completions.create(
+            model=self._model,
+            messages=messages,
+            temperature=temperature,
+            max_completion_tokens=max_completion_tokens,
+        )
         return response.choices[0].message.content

@@ -3,13 +3,14 @@ TutorAgent: Socratic tutor backed by GroqClient.
 Manages conversation history as a plain list of message dicts.
 """
 
+from src.llm.base import BaseLLMClient
 from src.llm.groq_client import GroqClient
-from src.agent.prompts import SOCRATIC_FEYNMAN_SYSTEM_PROMPT 
+from src.agent.prompts import SOCRATIC_FEYNMAN_SYSTEM_PROMPT
 
 
 class TutorAgent:
-    def __init__(self) -> None:
-        self._llm = GroqClient()
+    def __init__(self, llm: BaseLLMClient | None = None) -> None:
+        self._llm: BaseLLMClient = llm or GroqClient()
         self._history: list[dict] = []
 
     def chat(self, user_input: str) -> str:
