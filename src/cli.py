@@ -1,13 +1,14 @@
 """
-CLI chat interface — terminal REPL for interacting with the AI tutor.
+CLI entrypoint for the AI tutor: runs a simple REPL loop that captures user input,
+routes it through the TutorAgent, and prints responses until an exit command or interrupt.
 
 Usage:
-    learn-ai          # via installed entry point
+    learn-ai    
     python -m src.cli # directly
 """
 
 from src.agent import TutorAgent
-
+from src.llm import GroqClient
 EXIT_COMMANDS = {"quit", "exit", "q"}
 
 
@@ -34,7 +35,8 @@ def run_repl(agent: TutorAgent) -> None:
 
 
 def main():
-    agent = TutorAgent()
+    llm = GroqClient()
+    agent = TutorAgent(llm)
     run_repl(agent)
 
 
