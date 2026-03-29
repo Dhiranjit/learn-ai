@@ -13,9 +13,12 @@ class TutorAgent:
         self._llm: BaseLLMClient = llm
         self._history: list[dict] = []
 
-    def chat(self, user_input: str) -> str:
+    def chat(self, user_input: str, context: str | None = None) -> str:
         self._history.append({"role": "user", "content": user_input})
-        messages = [{"role": "system", "content": SOCRATIC_FEYNMAN_SYSTEM_PROMPT}] + self._history
+        messages = [{"role": "system", "content": SOCRATIC_FEYNMAN_SYSTEM_PROMPT}]
+        if context is not None:
+            messages.append({"role": "system", "content": context})
+        messages = messages + self._history
         response = self._llm.chat(messages)
 
         self._history.append({"role": "assistant", "content": response})

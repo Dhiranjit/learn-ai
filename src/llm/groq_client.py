@@ -17,6 +17,7 @@ class GroqClient(BaseLLMClient):
     def __init__(self) -> None:
         load_dotenv()
         self._model = os.environ["GROQ_MODEL"]
+        self._reasoning_effort = "none"
         self._client = OpenAI(
             api_key=os.environ["GROQ_API_KEY"],
             base_url="https://api.groq.com/openai/v1",
@@ -34,6 +35,6 @@ class GroqClient(BaseLLMClient):
             messages=messages,
             temperature=temperature,
             max_completion_tokens=max_completion_tokens,
-            reasoning_effort="none"
+            reasoning_effort=self._reasoning_effort
         )
         return response.choices[0].message.content
