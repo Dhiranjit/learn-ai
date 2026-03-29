@@ -1,5 +1,5 @@
 from src.llm.base import BaseLLMClient
-from src.agent.tutor import TutorAgent
+from src.agent.tutor import TutorAgent, HISTORY_THRESHOLD, RECENT_TURNS_TO_KEEP
 
 
 class StubLLMClient(BaseLLMClient):
@@ -57,3 +57,61 @@ def test_no_context_does_not_add_extra_message():
     assert len(messages) == 2  # system prompt + one user turn
     assert messages[0]["role"] == "system"
     assert messages[1] == {"role": "user", "content": "What is gravity?"}
+
+
+def _fill_history(agent, turns: int) -> None:
+    """Drive agent.chat() for `turns` rounds without caring about responses."""
+    for i in range(turns):
+        agent.chat(f"question {i}")
+
+
+def test_compression_triggered_at_threshold():
+    stub = StubLLMClient(reply="stub summary")
+    agent = TutorAgent(llm=stub)
+
+    # Drive enough turns to trigger compression at least once, then keep going
+    _fill_history(agent, HISTORY_THRESHOLD + 1)
+
+    # Compression fired and history stays bounded — never exceeds threshold
+    assert agent._summary == "stub summary"
+    assert len(agent._history) <= HISTORY_THRESHOLD
+
+
+def test_compression_not_triggered_below_threshold():
+    stub = StubLLMClient()
+    agent = TutorAgent(llm=stub)
+
+    # Exactly at threshold — should not compress yet
+    # Each chat() appends user turn, then assistant turn → 2 entries per call
+    # We want history length == HISTORY_THRESHOLD after the call, so do HISTORY_THRESHOLD // 2 calls
+    for i in range(HISTORY_THRESHOLD // 2):
+        agent.chat(f"question {i}")
+
+    assert agent._summary is None
+
+
+def test_summary_injected_into_messages_after_compression():
+    stub = StubLLMClient(reply="stub summary")
+    agent = TutorAgent(llm=stub)
+
+    _fill_history(agent, HISTORY_THRESHOLD + 1)
+
+    # Next chat() should inject the summary at index 1
+    agent.chat("follow-up question")
+    messages = stub.last_messages
+
+    assert messages[0]["role"] == "system"  # main system prompt
+    assert messages[1] == {"role": "system", "content": "stub summary"}
+
+
+def test_reset_clears_summary():
+    stub = StubLLMClient(reply="stub summary")
+    agent = TutorAgent(llm=stub)
+
+    _fill_history(agent, HISTORY_THRESHOLD + 1)
+    assert agent._summary is not None
+
+    agent.reset()
+
+    assert agent._history == []
+    assert agent._summary is None

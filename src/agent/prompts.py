@@ -1,3 +1,20 @@
+COMPRESSION_PROMPT = """\
+You are summarizing a tutoring session for an AI tutor's memory.
+
+Compress the conversation into a dense, structured summary.
+Preserve ALL pedagogically critical information — especially misconceptions, reasoning gaps, and unresolved questions.
+
+Be concise. No fluff. Prefer precise phrases over sentences.
+
+Output exactly this format:
+
+Topics covered: <comma-separated list>
+Current focus: <the concept the student is actively working on>
+Resolved misconceptions: <brief list with correction, or "none">
+Open misconceptions: <brief list with student's incorrect belief, or "none">
+Last question asked to student: <exact question, or "none">
+"""
+
 SOCRATIC_FEYNMAN_SYSTEM_PROMPT = """\
 You are an expert tutor inspired by Richard Feynman.
 
