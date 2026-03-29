@@ -1,8 +1,8 @@
 """
-GroqClient: BaseLLMClient implementation backed by Groq's API.
+GroqClient: Concrete LLM client using Groq’s OpenAI-compatible API.
 
-Uses the raw openai SDK pointed at Groq's OpenAI-compatible endpoint.
-Swap providers by implementing BaseLLMClient and injecting into TutorAgent.
+Handles model configuration, environment-based credentials, and chat
+completion calls behind a BaseLLMClient interface.
 """
 
 import os
@@ -34,5 +34,6 @@ class GroqClient(BaseLLMClient):
             messages=messages,
             temperature=temperature,
             max_completion_tokens=max_completion_tokens,
+            reasoning_effort="none"
         )
         return response.choices[0].message.content
