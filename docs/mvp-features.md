@@ -11,7 +11,7 @@ Defines what gets built in the AI Tutor MVP. Everything here is in scope; everyt
 | 1   | **LLM Client**               | `GroqClient` in `src/llm/` wrapping the raw `openai` SDK pointed at Groq. All LLM calls go through this interface so the model and provider can be swapped without touching other code.     |
 | 2   | **CLI Chat Interface**       | Terminal REPL — read user input, print tutor responses. No web UI. Enough to interact with and test the system manually.                                                                     |
 | 3   | **Socratic Agent Loop**      | Plain Python agent in `TutorAgent`. Guides the student through questions and hints rather than giving direct answers. System prompt enforces Socratic behavior. Manual conversation history. |
-| 4   | **Student Profile (SQLite)** | Persist a student record: name, current subject/topic, and a per-concept mastery table (concept, mastery level, last seen). Loaded at session start; updated as the conversation progresses. |
+| 4   | **Student Profile (SQLite)** | Subject→Topic→Sub-topic curriculum hierarchy. Notebook per (student, topic) with two-level mastery (sub-topic direct + topic aggregate), weakness tracking, and session orchestration via SessionManager. See `docs/teaching-loop-design.md`. |
 | 5   | **Conversation Logging**     | Each exchange (user + tutor turn) written to SQLite via the central memory module (`src/memory/`) for later review.                                                                          |
 | 6   | **RAG Pipeline**             | A small curated set of educational documents ingested into ChromaDB via LlamaIndex. On each student query, relevant chunks are retrieved and injected into the agent's context.              |
 | 7   | **Calculator Tool**          | A simple arithmetic tool available to the agent. Implemented via manual tool-calling (no framework). Lets the tutor evaluate expressions without hallucinating results.                      |
@@ -49,7 +49,7 @@ Build one block at a time in this sequence. Each step is independently testable 
    └─ TutorAgent with manual list[dict] history — working tutor conversation
 
 4. Student Profile (SQLite)
-   └─ add identity and mastery persistence; load/save around each session
+   └─ notebooks, two-level mastery, weaknesses, SessionManager (see teaching-loop-design.md)
 
 5. Conversation Logging
    └─ write session turns to SQLite through src/memory/
