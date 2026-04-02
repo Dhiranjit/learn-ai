@@ -4,3 +4,5 @@ CLAUDE.md
 *.egg-info
 .pytest_cache
 __pycache__
+*.claude/
+data/
